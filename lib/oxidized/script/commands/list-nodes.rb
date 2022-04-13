@@ -4,6 +4,7 @@ module Oxidized
   class Script
     module Command
       class ListNodes < Base
+        Short       = "n"
         Name        = "list-nodes"
         Description = "list nodes in oxidized source"
 
@@ -17,6 +18,7 @@ module Oxidized
           end
         end
 
+        # 执行节点查询任务
         def self.run(opts = {})
           if opts[:opts][:terse] # find if 'terse' global option is set
             puts new(opts).nodes_terse
@@ -25,24 +27,44 @@ module Oxidized
           end
         end
 
+        # 查询项目下所有节点 - 详细输出
         def nodes
           out = ""
           Nodes.new.each do |node|
             out += "#{node.name}:\n"
             node.instance_variables.each do |var|
-              name  = var.to_s[1..-1]
+              name = var.to_s[1..-1]
               next if name == "name"
               value = node.instance_variable_get var
               value = value.class if name == "model"
-              out += "  %10s => %s\n" % [name, value.to_s]
+              out   += "  %10s => %s\n" % [name, value.to_s]
             end
           end
           out
         end
 
+        # 查询项目下所有节点 - 详细输出
+        def node(name)
+          item = Nodes.new.filter { |i| i.name == name }
+          return "#{name} not in DB!" if item.nil?
+
+          out = ""
+          out += "#{item.name}: \n"
+          node.instance_variables.each do |var|
+            name = var.to_s[1..-1]
+            next if name == "name"
+            value = item.instance_variable_get var
+            value = value.class if name == "model"
+            # 规则打印数据
+            out += "%10s => %s\n" % [name, value.to_s]
+          end
+          out
+        end
+
+        # 简洁输出 - 列出节点名称
         def nodes_terse
           out = ""
-          i = 0
+          i   = 0
           Nodes.new.each do |node|
             out += "#{i += 1} - #{node.name}\n"
           end

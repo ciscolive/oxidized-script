@@ -4,16 +4,21 @@
 module Oxidized
   require "oxidized"
   require_relative "command"
+
   class Script
+    # 对象属性
     attr_reader :model
 
-    class ScriptError   < OxidizedError; end
-    class NoNode        < ScriptError;   end
-    class InvalidOption < ScriptError;   end
-    class NoConnection  < ScriptError
+    # 定义错误类对象
+    class ScriptError < OxidizedError; end
+
+    class NoNode < ScriptError; end
+
+    class InvalidOption < ScriptError; end
+
+    class NoConnection < ScriptError
       attr_accessor :node_error
     end
-
 
     # @param [String] command command to be sent
     # @return [String] output for command
@@ -21,8 +26,9 @@ module Oxidized
       out = ""
       out += "## HOST - #{@host}\n" if @verbose
       out += "## OXS - #{command}\n" if @verbose
+
       cmd_out = @model.cmd command
-      out += cmd_out if cmd_out
+      out     += cmd_out if cmd_out
       out
     end
 
@@ -34,6 +40,7 @@ module Oxidized
     alias_method :close, :disconnect
 
     private
+
       # @param [Hash] opts options for Oxidized::Script
       # @option opts [String]  :host      @hostname or ip address for Oxidized::Node
       # @option opts [String]  :model     node model (ios, junos etc) if defined, nodes are not loaded from source
@@ -48,30 +55,32 @@ module Oxidized
       # @yieldreturn [self] if called in block, returns self and disconnnects session after exiting block
       # @return [void]
       def initialize(opts, &block)
-        @host       = opts.delete :host
-        model       = opts.delete :model
-        ostype      = opts.delete :ostype
-        timeout     = opts.delete :timeout
-        username    = opts.delete :username
-        password    = opts.delete :password
-        enable      = opts.delete :enable
-        community   = opts.delete :community
-        group       = opts.delete :group
-        @verbose    = opts.delete :verbose
+        @host                         = opts.delete :host
+        model                         = opts.delete :model
+        os_type                       = opts.delete :os_type
+        timeout                       = opts.delete :timeout
+        username                      = opts.delete :username
+        password                      = opts.delete :password
+        enable                        = opts.delete :enable
+        community                     = opts.delete :community
+        group                         = opts.delete :group
+        @verbose                      = opts.delete :verbose
         Oxidized.config.input.default = opts.delete :protocols if opts[:protocols]
         raise InvalidOption, "#{opts} not recognized" unless opts.empty?
 
-        @@oxi ||= false
+        @@oxi                       ||= false
+
         if not @@oxi
           Oxidized.mgr = Manager.new
-          @@oxi = true
+          @@oxi        = true
         end
 
-        @node = if model
-          Node.new(name: @host, model: model)
+        if model
+          @node = Node.new(name: @host, model: model)
         else
-          Nodes.new(node: @host).first
+          @node = Nodes.new(node: @host).first
         end
+
         if not @node
           begin
             require "corona"
@@ -83,12 +92,12 @@ module Oxidized
           raise NoNode, "node not found" unless node
           @node = Node.new name: @host, model: node[:model]
         end
-        @node.auth[:username] = username if username
-        @node.auth[:password] = password if password
+        @node.auth[:username]       = username if username
+        @node.auth[:password]       = password if password
         Oxidized.config.vars.enable = enable if enable
-        Oxidized.config.timeout = timeout if timeout
-        @model = @node.model
-        @input = nil
+        Oxidized.config.timeout     = timeout if timeout
+        @model                      = @node.model
+        @input                      = nil
         connect
         if block_given?
           yield self
@@ -105,8 +114,8 @@ module Oxidized
         rescue => error
           node_error[input] = error
         end
-        @input = @node.model.input
-        err = NoConnection.new
+        @input         = @node.model.input
+        err            = NoConnection.new
         err.node_error = node_error
         raise err, "unable to connect" unless @input.connected?
         @input.connect_cli

@@ -146,8 +146,8 @@ Style/DefWithParentheses:
 Style/MethodDefParentheses:
   Enabled: true
 
-Style/ExplicitBlockArgument:
-  Enabled: true
+#Style/ExplicitBlockArgument:
+#  Enabled: true
 
 Style/FrozenStringLiteralComment:
   Enabled: true
@@ -186,9 +186,9 @@ Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
 
-# Detect hard tabs, no hard tabs.
-Layout/IndentationStyle:
-  Enabled: true
+## Detect hard tabs, no hard tabs.
+#Layout/IndentationStyle:
+#  Enabled: true
 
 # Empty lines should not have any spaces.
 Layout/TrailingEmptyLines:
